@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma carte</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=HP+Simplified&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+</head>
+<div class = "flex-container">
+    <div class="image-box"></div>
+    <div class="title-box"><h1>Patrimoine de l'eau passé et présent de Seine-Saint-Denis</h1></div>
+    <div class="image-box2"></div>
+</div>
+<body>
+    <title>Ma carte</title>
+    <div class="flex-container2">
+    <div id="map"></div>
+    <div class="legend-box">
+      <div class="legend-header">Légende</div>
+        <div class="legend">
+            <div>
+              <input type="checkbox" id="lavoirs" data-group="ensembleCheckbox">
+              <img src="./images/lav.png" alt="Lavoirs">&nbsp;&nbsp;&nbsp;Lavoirs<br>
+            </div>
+            <div>
+              <input type="checkbox" id="fontaines" data-group="ensembleCheckbox">
+              <img src="./images/fon.png" alt="Fontaines">&nbsp;&nbsp;&nbsp;Fontaines<br>
+            </div>
+            <div>
+              <input type="checkbox" id="moulins" data-group="ensembleCheckbox">
+              <img src="./images/mou.png" alt="Moulins">&nbsp;&nbsp;&nbsp;Moulins<br>
+            </div>
+            <div>
+              <input type="checkbox" id="chateaudeau" data-group="ensembleCheckbox">
+              <img src="./images/cha.png" alt="Châteaux d'eau">&nbsp;&nbsp;&nbsp;Châteaux d'eau<br>
+            </div>
+            <div>
+              <input type="checkbox" id="ruesdeau" data-group="ensembleCheckbox">
+              <img src="./images/rues.png" alt="Rues d'eau">&nbsp;&nbsp;&nbsp; Rues aux toponymes d'eau<br>
+            </div>
+            <div>
+              <input type="checkbox" id="rus1820" data-group="ensembleCheckbox">
+              <img src="./images/rus.png" alt="Cours d'eau en 1820">&nbsp;&nbsp;&nbsp; Cours d'eau en 1820<br>
+            </div>
+            <div>
+            <input type="checkbox" id="ensembleCheckbox">
+            <label for="ensembleCheckbox">
+                &nbsp;<img src="./images/all.png" alt="Ensemble">&nbsp;&nbsp;&nbsp; Ensemble<br>
+                 <script>
+                    // Sélectionnez la case à cocher principale
+                    const ensembleCheckbox = document.getElementById('ensembleCheckbox');
+
+                    // Ajoutez un écouteur d'événements pour détecter les changements
+                    ensembleCheckbox.addEventListener('change', function () {
+                        // Récupérez les éléments à contrôler avec l'attribut data-group
+                        const elementsToControl = document.querySelectorAll('[data-group="ensembleCheckbox"]');
+                        
+                        // Parcourez chaque élément et mettez à jour son état en fonction de la case à cocher principale
+                        elementsToControl.forEach(function (element) {
+                            element.checked = ensembleCheckbox.checked;
+                        });
+                    });
+                </script>
+            </label>
+            </div>
+              &nbsp;&nbsp;&nbsp;&nbsp;<img src="./images/surv.png" alt="Patrimoine présent"> Patrimoine présent<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<img src="./images/lost.png" alt="Patrimoine perdu"> Patrimoine perdu<br>
+              &nbsp;
+          </div></div>
+    </div></div>
+    <script src="js/Fontaines2.js"></script>
+    <script src="js/Lavoirs2.js"></script>
+    <script src="js/Moulins2.js"></script>
+    <script src="js/Chateaudeau.js"></script>
+    <script src="js/Fontaines3.js"></script>
+    <script src="js/Lavoirs3.js"></script>
+    <script src="js/Moulins3.js"></script>
+    <script src="js/Chateaudeau3.js"></script>
+    <script src="js/Fusionne.js"></script>
+    <script src="js/Ruesdeau.js"></script>
+    <script src="js/Rus1820.js"></script>
+    <script src="js/Surface eau accessible.js"></script>
+    <script src="js/Canaux.js"></script>
+    <script src="js/Communes.js"></script>
+    <script src="js/Rivieres.js"></script>
+    <script src="js/Departement2.js"></script>
+    <script src="js/scriptLeaflet - Final mode2.js"></script>
+  
+
+</body>
+<footer> 
+    <h3><br>Réalisée par Rodrigue da Silva - M2 Carthagéo - 2024</h3>  
+</footer>
+</html>
+
