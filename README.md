@@ -1,5 +1,6 @@
 # portfolio-webmapping
-Scripts cartes JS+HTML/
+Projets de cartes interactives et d'interfaces SIG
+
 # Projet 1: Carte du patrimoine d'eau de surface de Seine-Saint-Denis (carte_patrimoine_eau_2024)
 
 ## Présentation
