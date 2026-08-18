@@ -3,6 +3,7 @@ const map = L.map('map').setView([48.92, 2.42], 11.49);
 
 // Ajouter la couche de tuiles
 var leaf = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '© OpenStreetMap contributors',
     maxZoom: 19,
 }
 );
