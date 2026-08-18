@@ -243,10 +243,8 @@ function getPopup(feature) {
     if (feature.properties.NOM) {
         return `<div>
             <h3>${feature.properties.NOM}</h3>
-            <img src="./${feature.properties.IMAGE_URL}" alt="Pas d'image disponible" style="width: 100%;">
+            <img src="./${feature.properties.IMAGE_URL}" alt="Image de ${feature.properties.NOM}" style="width: 100%;">
             <p>${feature.properties.ADRESSE}, ${feature.properties.INSEE} ${feature.properties.COMMUNE}</p>
-            ${feature.properties.COMMENTAIR != null ? `<p><strong>Commentaires:</strong>&nbsp;${feature.properties.COMMENTAIR}</p>` : ""}
-            <p><strong>Source:</strong>&nbsp;${feature.properties.SOURCE}</p>
         </div>`;
     } else {
         return `<b>${feature.properties.Nom}</b><br>${feature.properties.Code_Insee} ${feature.properties.Commune}`;
@@ -260,179 +258,634 @@ let chateaudeauCluster = L.markerClusterGroup();
 let fusionCluster = L.markerClusterGroup();
 
 // Créer des couches GeoJSON spécifiques et les ajouter aux clusters
-let lavoirsLayer = L.geoJSON(Lavoirs, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'lavoirs') }).bindPopup(getPopup(feature));
-    }
-}).addTo(lavoirsCluster);
+// Adresse GeoServer WFS
 
-let fontainesLayer = L.geoJSON(Fontaines, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'fontaines') }).bindPopup(getPopup(feature));
-    }
-}).addTo(fontainesCluster);
+const geoserverURL =
+"http://localhost:8080/geoserver/Patrimoine_eau/ows";
 
-let moulinsLayer = L.geoJSON(Moulins, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'moulins') }).bindPopup(getPopup(feature));
-    }
-}).addTo(moulinsCluster);
 
-let chateaudeauLayer = L.geoJSON(Chateaudeau, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'chateaudeau') }).bindPopup(getPopup(feature));
-    }
-}).addTo(chateaudeauCluster);
+function getWFS(layerName){
 
-let fusionLayer = L.geoJSON(Fusionne, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'born') }).bindPopup(getPopup(feature));
-    }
-}).addTo(fusionCluster);
+    return `${geoserverURL}?service=WFS&version=1.0.0&request=GetFeature&typeName=Patrimoine_eau:${layerName}&outputFormat=application/json`;
 
-let lavoirs2Layer = L.geoJSON(Lavoirs2, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'lavoirs2') }).bindPopup(getPopup(feature));
-    }
-});
+}
 
-let fontaines2Layer = L.geoJSON(Fontaines2, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'fontaines2') }).bindPopup(getPopup(feature));
-    }
-});
 
-let moulins2Layer = L.geoJSON(Moulins2, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'moulins2') }).bindPopup(getPopup(feature));
-    }
-});
 
-let chateaudeau2Layer = L.geoJSON(Chateaudeau2, {
-    pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, { icon: getIcon(feature, 'chateaudeau2') }).bindPopup(getPopup(feature));
-    }
-});
+async function loadWFS(layerName){
 
-let rudoLayer = L.geoJSON(Ruesdeau, {
-    style: function (feature) {
-        return {
-            weight: 2,
-            color: "orange"
-        };
-    },
-    onEachFeature: function (feature, layer) {
-        layer.bindPopup(`<b>${feature.properties.nom_voie_ban_droite}</b><br> Cette rue fait référence au patrimoine de l'eau présent ou passé`);
-    }
-});
+    const response = await fetch(getWFS(layerName));
 
-let eauLayer = L.geoJSON(Rus1820, {
-    style: function (feature) {
-        return {
-            weight: 2,
-            color: "blue"
-        };
-    },
-    onEachFeature: function (feature, layer) {
-        if (feature.properties && feature.properties.nom) {
-        layer.bindPopup(`<b>${feature.properties.nom}</b><br> Ce cours d'eau est aujourd'hui enseveli en majeure partie`);
-        } else {
-        layer.bindPopup('Aucune donnée disponible.');
+
+    if(!response.ok){
+
+        throw new Error(
+            `Erreur GeoServer ${layerName} : ${response.status}`
+        );
+
+    }
+
+
+    return await response.json();
+
+}
+
+// Chargement Lavoirs
+
+let lavoirsLayer;
+
+loadWFS("lavoirs")
+.then(data=>{
+
+
+    lavoirsLayer = L.geoJSON(data,{
+        
+        pointToLayer:function(feature,latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'lavoirs')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
         }
-    }
-});
 
-// Ajouter les clusters à la carte
+    });
+
+
+    lavoirsLayer.addTo(lavoirsCluster);
+
+
+})
+.catch(console.error);
+
+// Chargement Fontaines
+
+let fontainesLayer;
+
+
+loadWFS("fontaines")
+.then(data=>{
+
+
+    fontainesLayer = L.geoJSON(data,{
+
+        pointToLayer:function(feature,latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'fontaines')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+    fontainesLayer.addTo(fontainesCluster);
+
+
+})
+.catch(console.error);
+
+// Chargement Moulins
+
+let moulinsLayer;
+
+
+loadWFS("moulins")
+.then(data=>{
+
+
+    moulinsLayer = L.geoJSON(data,{
+
+        pointToLayer:function(feature,latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'moulins')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+    moulinsLayer.addTo(moulinsCluster);
+
+
+})
+.catch(console.error);
+
+// Chargement Châteaux d'eau
+
+let chateaudeauLayer;
+
+
+loadWFS("chateaudeau")
+.then(data=>{
+
+
+    chateaudeauLayer = L.geoJSON(data,{
+
+        pointToLayer:function(feature,latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'chateaudeau')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+    chateaudeauLayer.addTo(chateaudeauCluster);
+
+
+})
+.catch(console.error);
+
+// Chargement Bornes (fusion)
+
+let fusionLayer;
+
+
+loadWFS("bornes")
+.then(data=>{
+
+
+    fusionLayer = L.geoJSON(data,{
+
+        pointToLayer:function(feature,latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'born')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+    fusionLayer.addTo(fusionCluster);
+
+
+})
+.catch(console.error);
+
+// Les clusters sont ajoutés immédiatement.
+// Les données seront injectées dedans quand les fetch WFS seront terminés.
+
 lavoirsCluster.addTo(map);
 fontainesCluster.addTo(map);
 moulinsCluster.addTo(map);
 chateaudeauCluster.addTo(map);
 fusionCluster.addTo(map);
-rudoLayer.addTo(map);
-eauLayer.addTo(map);
 
-// Fonction pour mettre à jour les couches affichées
+let lavoirs2Layer;
+let fontaines2Layer;
+let moulins2Layer;
+let chateaudeau2Layer;
+
+
+
+fetch(getWFS("lavoirs2"))
+
+.then(response => response.json())
+
+.then(data => {
+
+
+    lavoirs2Layer = L.geoJSON(data, {
+
+        pointToLayer: function(feature, latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'lavoirs2')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+});
+
+
+
+
+
+fetch(getWFS("fontaines3"))
+
+.then(response => response.json())
+
+.then(data => {
+
+
+    fontaines2Layer = L.geoJSON(data, {
+
+        pointToLayer: function(feature, latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'fontaines2')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+});
+
+
+
+
+
+fetch(getWFS("moulins2"))
+
+.then(response => response.json())
+
+.then(data => {
+
+
+    moulins2Layer = L.geoJSON(data, {
+
+        pointToLayer: function(feature, latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'moulins2')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+});
+
+
+
+
+
+fetch(getWFS("chateauxdeau2"))
+
+.then(response => response.json())
+
+.then(data => {
+
+
+    chateaudeau2Layer = L.geoJSON(data, {
+
+        pointToLayer: function(feature, latlng){
+
+            return L.marker(
+                latlng,
+                {
+                    icon:getIcon(feature,'chateaudeau2')
+                }
+            )
+            .bindPopup(getPopup(feature));
+
+        }
+
+    });
+
+
+});
+
+let rudoLayer;
+
+
+fetch(getWFS("rusdeau"))
+
+.then(response => response.json())
+
+.then(data => {
+
+
+    rudoLayer = L.geoJSON(data, {
+
+        style:function(feature){
+
+            return {
+                weight:2,
+                color:"orange"
+            };
+
+        },
+
+
+        onEachFeature:function(feature,layer){
+
+            layer.bindPopup(
+                `<b>${feature.properties.nom_voie_ban_droite}</b><br>
+                Cette rue fait référence au patrimoine de l'eau présent ou passé`
+            );
+
+        }
+
+    });
+
+    rudoLayer.addTo(map);
+
+});
+
+
+let eauLayer;
+
+
+fetch(getWFS("rus_anciens__rus_ancien"))
+
+.then(response => response.json())
+
+.then(data => {
+
+
+    eauLayer = L.geoJSON(data, {
+
+
+        style:function(feature){
+
+            return {
+                weight:2,
+                color:"blue"
+            };
+
+        },
+
+
+        onEachFeature:function(feature,layer){
+
+            if(feature.properties && feature.properties.nom){
+
+                layer.bindPopup(
+                    `<b>${feature.properties.nom}</b>`
+                );
+
+            }
+            else{
+
+                layer.bindPopup(
+                    "Aucune donnée disponible."
+                );
+
+            }
+
+        }
+
+    });
+
+    eauLayer.addTo(map);
+    
+});
+
+
 function updateLayers() {
-    if (document.getElementById('ensembleCheckbox').checked) {
-        // Si "Ensemble" est coché, afficher uniquement le cluster fusion et masquer les clusters individuels
+
+
+    let ensemble =
+    document.getElementById('ensembleCheckbox').checked;
+
+
+
+    if (ensemble) {
+
+
+
         map.removeLayer(lavoirsCluster);
         map.removeLayer(fontainesCluster);
         map.removeLayer(moulinsCluster);
         map.removeLayer(chateaudeauCluster);
-        map.addLayer(fusionCluster);
-        map.addLayer(rudoLayer);
-        map.addLayer(eauLayer); 
-    } else {
-        // Si "Ensemble" est décoché, gérer les clusters individuels en fonction de leurs cases à cocher
-        map.removeLayer(fusionCluster);
-        if (document.getElementById('lavoirs').checked) {
-            map.addLayer(lavoirsCluster);
-        } else {
-            map.removeLayer(lavoirsCluster);
+
+
+
+        if(fusionCluster){
+            map.addLayer(fusionCluster);
         }
-        if (document.getElementById('fontaines').checked) {
-            map.addLayer(fontainesCluster);
-        } else {
-            map.removeLayer(fontainesCluster);
-        }
-        if (document.getElementById('moulins').checked) {
-            map.addLayer(moulinsCluster);
-        } else {
-            map.removeLayer(moulinsCluster);
-        }
-        if (document.getElementById('chateaudeau').checked) {
-            map.addLayer(chateaudeauCluster);
-        } else {
-            map.removeLayer(chateaudeauCluster);
-        }
-        if (document.getElementById('ruesdeau').checked) {
+
+
+        if(rudoLayer){
             map.addLayer(rudoLayer);
-        } else {
-            map.removeLayer(rudoLayer);
         }
-        if (document.getElementById('rus1820').checked) {
+
+
+        if(eauLayer){
             map.addLayer(eauLayer);
-        } else {
-            map.removeLayer(eauLayer);
         }
+
+
+
+    } 
+
+    else {
+
+
+
+        map.removeLayer(fusionCluster);
+
+
+
+        if(document.getElementById('lavoirs').checked){
+
+            map.addLayer(lavoirsCluster);
+
+        }
+        else{
+
+            map.removeLayer(lavoirsCluster);
+
+        }
+
+
+
+
+        if(document.getElementById('fontaines').checked){
+
+            map.addLayer(fontainesCluster);
+
+        }
+        else{
+
+            map.removeLayer(fontainesCluster);
+
+        }
+
+
+
+
+        if(document.getElementById('moulins').checked){
+
+            map.addLayer(moulinsCluster);
+
+        }
+        else{
+
+            map.removeLayer(moulinsCluster);
+
+        }
+
+
+
+
+        if(document.getElementById('chateaudeau').checked){
+
+            map.addLayer(chateaudeauCluster);
+
+        }
+        else{
+
+            map.removeLayer(chateaudeauCluster);
+
+        }
+
+
+
+
+
+        if(document.getElementById('ruesdeau').checked
+        && rudoLayer){
+
+            map.addLayer(rudoLayer);
+
+        }
+        else if(rudoLayer){
+
+            map.removeLayer(rudoLayer);
+
+        }
+
+
+
+
+
+        if(document.getElementById('rus1820').checked
+        && eauLayer){
+
+            map.addLayer(eauLayer);
+
+        }
+        else if(eauLayer){
+
+            map.removeLayer(eauLayer);
+
+        }
+
     }
+
+
     updateZoomLayers();
+
 }
 
-// Fonction pour gérer les couches en fonction du zoom
 function updateZoomLayers() {
-    const currentZoom = map.getZoom();
-    const ensemble = document.getElementById('ensembleCheckbox').checked;
 
-    if (currentZoom >= 14) {
+
+    const currentZoom = map.getZoom();
+
+    const ensemble =
+    document.getElementById('ensembleCheckbox').checked;
+
+
+
+    if(currentZoom >= 14){
+
+
 
         map.removeLayer(fusionCluster);
 
-        if (ensemble) {
-            map.addLayer(lavoirs2Layer);
-            map.addLayer(fontaines2Layer);
-            map.addLayer(moulins2Layer);
-            map.addLayer(chateaudeau2Layer);
-        } else {
-            map.removeLayer(lavoirs2Layer);
-            map.removeLayer(fontaines2Layer);
-            map.removeLayer(moulins2Layer);
-            map.removeLayer(chateaudeau2Layer);
+
+
+        if(ensemble){
+
+
+
+            if(lavoirs2Layer){
+                map.addLayer(lavoirs2Layer);
+            }
+
+
+            if(fontaines2Layer){
+                map.addLayer(fontaines2Layer);
+            }
+
+
+            if(moulins2Layer){
+                map.addLayer(moulins2Layer);
+            }
+
+
+            if(chateaudeau2Layer){
+                map.addLayer(chateaudeau2Layer);
+            }
+
+
         }
 
-    } else {
 
-        if (ensemble) {
-            map.addLayer(fusionCluster);
-        } else {
-            map.removeLayer(fusionCluster);
-        }
 
-        map.removeLayer(lavoirs2Layer);
-        map.removeLayer(fontaines2Layer);
-        map.removeLayer(moulins2Layer);
-        map.removeLayer(chateaudeau2Layer);
     }
+
+
+    else {
+
+
+
+        if(ensemble){
+
+            if(fusionCluster){
+                map.addLayer(fusionCluster);
+            }
+
+        }
+
+
+        if(lavoirs2Layer){
+    map.removeLayer(lavoirs2Layer);
+}
+
+if(fontaines2Layer){
+    map.removeLayer(fontaines2Layer);
+}
+
+if(moulins2Layer){
+    map.removeLayer(moulins2Layer);
+}
+
+if(chateaudeau2Layer){
+    map.removeLayer(chateaudeau2Layer);
+}
+
+
+    }
+
 }
 
 // Ajouter l'événement de zoom pour afficher ou masquer les couches de points
@@ -461,24 +914,12 @@ document.getElementById('ensembleCheckbox').addEventListener('change', function 
 });
 
 // Ajouter les autres couches GeoJSON à la carte
-L.geoJSON(Communes, { style: style2 }).addTo(map);
-L.geoJSON(Departement, { style: style }).addTo(map);
-L.geoJSON(Rivieres2, { style: style3 }).addTo(map);
-L.geoJSON(Canaux, { style: style3 }).addTo(map);
-L.geoJSON(Surfeau_access, { 
-    style: style3, 
-    onEachFeature: function (feature, layer) {
-        if (feature.properties && feature.properties.NOM) {
-        layer.bindPopup(`<h3>${feature.properties.NOM}</h3><img src="./${feature.properties.IMAGE_URL}" alt="Pas d'image disponible" style="width: 100%;"><br> Cet élément du patrimoine de l'eau est accessible <br>Sources:&nbsp;${feature.properties.SOURCE}`);
-        } else {
-        layer.bindPopup('Aucune donnée disponible.');
-        } }, 
-    
+fetch(getWFS("communes"))
+.then(response => response.json())
+.then(data=>{
+    L.geoJSON(data,{
+        style:style2
     }).addTo(map);
-
+});
 // Appeler la fonction updateLayers initialement pour configurer les couches
 updateLayers();
-
-L.Control.geocoder({
-    defaultMarkGeocode: true
-}).addTo(map);
